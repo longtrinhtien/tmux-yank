@@ -213,7 +213,7 @@ set -g @yank_selection 'primary' # or 'secondary' or 'clipboard'
 ```
 
 With mouse support turned on (see below) the default clipboard for mouse
-selections is `primary`.
+selections is `clipboard`.
 
 You can change this by setting `@yank_selection_mouse`:
 

@@ -22,7 +22,7 @@ yank_wo_newline_option="@copy_mode_yank_wo_newline"
 yank_selection_default="clipboard"
 yank_selection_option="@yank_selection"
 
-yank_selection_mouse_default="primary"
+yank_selection_mouse_default="clipboard"
 yank_selection_mouse_option="@yank_selection_mouse"
 
 yank_with_mouse_default="on"

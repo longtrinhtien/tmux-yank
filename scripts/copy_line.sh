@@ -41,10 +41,10 @@ start_tmux_selection() {
         tmux send -X begin-selection
     elif [ "$TMUX_COPY_MODE" == "vi" ]; then
         # vi copy mode
-        tmux send-key 'Space'
+        tmux send-keys -X copy-pipe
     else
         # emacs copy mode
-        tmux send-key 'C-Space'
+        tmux send-keys -X copy-pipe
     fi
 }
 
@@ -79,7 +79,7 @@ end_of_line_in_copy_mode() {
 yank_to_clipboard() {
     if tmux_is_at_least 2.4; then
         # shellcheck disable=SC2119
-        tmux send -X copy-pipe-and-cancel "$(clipboard_copy_command)"
+        tmux send -X copy-pipe "$(clipboard_copy_command)"
     else
         tmux send-key "$(yank_wo_newline_key)"
     fi
