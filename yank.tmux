@@ -42,10 +42,10 @@ set_copy_mode_bindings() {
     local copy_command="$1"
     local copy_wo_newline_command
     copy_wo_newline_command="$(clipboard_copy_without_newline_command "$copy_command")"
-    local copy_command_mouse
-    copy_command_mouse="$(clipboard_copy_command "true")" # Lệnh copy ra clipboard hệ thống cho chuột
+    local copy_command_mouse # Command to copy to system clipboard for mouse
+    copy_command_mouse="$(clipboard_copy_command "true")"
 
-    # -- BINDINGS CHO TMUX PHIÊN BẢN 2.4 TRỞ LÊN --
+    # -- BINDINGS FOR TMUX VERSION 2.4 AND LATER --
     if tmux_is_at_least 2.4; then
         set -x
         tmux bind-key -T copy-mode-vi "$(yank_key)" send-keys -X "$(yank_action)" "$copy_command"
@@ -53,67 +53,67 @@ set_copy_mode_bindings() {
         tmux bind-key -T copy-mode-vi "$(yank_put_key)" send-keys -X copy-pipe-and-cancel "$copy_command; tmux paste-buffer -p"
         tmux bind-key -T copy-mode-vi "$(yank_wo_newline_key)" send-keys -X "$(yank_action)" "$copy_wo_newline_command"
         
-        # Bắt đầu binding tùy chỉnh MouseDragEnd1Pane cho copy-mode-vi
-        if [[ true ]]; then
+        # Start custom binding MouseDragEnd1Pane for copy-mode-vi
+        if [[ "$(yank_with_mouse)" == "on" ]]; then
             tmux bind-key -T copy-mode-vi MouseDragEnd1Pane run-shell ' \
                 if [ "$(tmux display -p "#{scroll_position}")" -eq 0 ]; then \
-                    # Nếu ở đầu (scroll_position == 0), copy và thoát chế độ copy \
+                    # At top buffer (scroll_position == 0), copy and get out of copy mode \
                     tmux send-keys -X copy-pipe-and-cancel "'"$copy_command_mouse"'"; \
                 else \
-                    # Nếu không ở đầu, copy và giữ nguyên chế độ copy (-x) \
+                    # Otherwise, keep at copy mode (-x) \
                     tmux send-keys -X copy-pipe "'"$copy_command_mouse"'" -x; \
                 fi'
         fi
         set +x
-        # Kết thúc binding tùy chỉnh MouseDragEnd1Pane cho copy-mode-vi
+        # End custom binding MouseDragEnd1Pane for copy-mode-vi
 
         tmux bind-key -T copy-mode "$(yank_key)" send-keys -X "$(yank_action)" "$copy_command"
         tmux bind-key -T copy-mode "$(put_key)" send-keys -X copy-pipe-and-cancel "tmux paste-buffer -p"
         tmux bind-key -T copy-mode "$(yank_put_key)" send-keys -X copy-pipe-and-cancel "$copy_command; tmux paste-buffer -p"
         tmux bind-key -T copy-mode "$(yank_wo_newline_key)" send-keys -X "$(yank_action)" "$copy_wo_newline_command"
         
-        # Bắt đầu binding tùy chỉnh MouseDragEnd1Pane cho copy-mode (Emacs-like)
+        # Start custom binding MouseDragEnd1Pane for copy-mode (Emacs-like)
         if [[ "$(yank_with_mouse)" == "on" ]]; then
             tmux bind-key -T copy-mode MouseDragEnd1Pane run-shell ' \
                 if [ "$(tmux display -p "#{scroll_position}")" -eq 0 ]; then \
-                    # Nếu ở đầu (scroll_position == 0), copy và thoát chế độ copy
+                    # At top buffer (scroll_position == 0), copy and get out of copy mode \
                     tmux send-keys -X copy-pipe-and-cancel "'"$copy_command_mouse"'"; \
                 else \
-                    # Nếu không ở đầu, copy và giữ nguyên chế độ copy (-x)
+                    # If not at the top, copy and keep copy mode (-x)
                     tmux send-keys -X copy-pipe "'"$copy_command_mouse"'" -x; \
                 fi'
         fi
-        # Kết thúc binding tùy chỉnh MouseDragEnd1Pane cho copy-mode
+        # End custom binding MouseDragEnd1Pane for copy-mode
 
-    # -- BINDINGS CHO TMUX PHIÊN BẢN DƯỚI 2.4 --
+    # -- BINDINGS FOR TMUX VERSIONS BELOW 2.4 --
     else 
         tmux bind-key -t vi-copy "$(yank_key)" copy-pipe "$copy_command"
         tmux bind-key -t vi-copy "$(put_key)" copy-pipe "tmux paste-buffer -p"
         tmux bind-key -t vi-copy "$(yank_put_key)" copy-pipe "$copy_command; tmux paste-buffer -p"
         tmux bind-key -t vi-copy "$(yank_wo_newline_key)" copy-pipe "$copy_wo_newline_command"
         
-        # Bắt đầu binding tùy chỉnh MouseDragEnd1Pane cho vi-copy (Tmux < 2.4)
+        # Start custom binding MouseDragEnd1Pane for vi-copy (Tmux < 2.4)
         if [[ "$(yank_with_mouse)" == "on" ]]; then
             tmux bind-key -t vi-copy MouseDragEnd1Pane run-shell ' \
                 if [ "$(tmux display -p "#{scroll_position}")" -eq 0 ]; then \
-                    # Nếu ở đầu, copy và thoát chế độ copy
+                    # At top buffer (scroll_position == 0), copy and get out of copy mode \
                     tmux copy-pipe "'"$copy_command_mouse"'"; \
                     tmux send-keys -X cancel; \
                 else \
-                    # Nếu không ở đầu, copy và giữ nguyên chế độ copy (không có -x, nên chỉ copy)
-                    # Lưu ý: Tmux < 2.4 không có cách đơn giản để copy và giữ nguyên mode bằng chuột.
-                    # Hành vi mặc định là thoát copy mode sau khi copy.
+                    # If not at the top, copy and keep copy mode (no -x, so just copy) \
+                    # Note: Tmux < 2.4 does not have a simple way to copy and keep mode with the mouse. \
+                    # Default behavior is to exit copy mode after copying. \
                     tmux copy-pipe "'"$copy_command_mouse"'"; \
                 fi'
         fi
-        # Kết thúc binding tùy chỉnh MouseDragEnd1Pane cho vi-copy
+        # End custom binding MouseDragEnd1Pane for vi-copy
 
         tmux bind-key -t emacs-copy "$(yank_key)" copy-pipe "$copy_command"
         tmux bind-key -t emacs-copy "$(put_key)" copy-pipe "tmux paste-buffer -p"
         tmux bind-key -t emacs-copy "$(yank_put_key)" copy-pipe "$copy_command; tmux paste-buffer -p"
         tmux bind-key -t emacs-copy "$(yank_wo_newline_key)" copy-pipe "$copy_wo_newline_command"
         
-        # Bắt đầu binding tùy chỉnh MouseDragEnd1Pane cho emacs-copy (Tmux < 2.4)
+        # Start custom binding MouseDragEnd1Pane for emacs-copy (Tmux < 2.4)
         if [[ "$(yank_with_mouse)" == "on" ]]; then
             tmux bind-key -t emacs-copy MouseDragEnd1Pane run-shell ' \
                 if [ "$(tmux display -p "#{scroll_position}")" -eq 0 ]; then \
@@ -121,12 +121,12 @@ set_copy_mode_bindings() {
                     tmux copy-pipe "'"$copy_command_mouse"'"; \
                     tmux send-keys -X cancel; \
                 else \
-                    # Nếu không ở đầu, copy và giữ nguyên chế độ copy (không có -x, nên chỉ copy)
-                    # Hành vi mặc định là thoát copy mode sau khi copy.
+                    # If not at the top, copy and keep copy mode (no -x, so just copy) \
+                    # Default behavior is to exit copy mode after copying. \
                     tmux copy-pipe "'"$copy_command_mouse"'"; \
                 fi'
         fi
-        # Kết thúc binding tùy chỉnh MouseDragEnd1Pane cho emacs-copy
+        # End custom binding MouseDragEnd1Pane for emacs-copy
     fi
 }
 
