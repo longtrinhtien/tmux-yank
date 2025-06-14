@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-PS4='♞: ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]} '
-exec >> "/tmp/tmux_plugin_debug_verbose.log" 2>&1
+# PS4='♞: ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]} '
+# exec >> "/tmp/tmux_plugin_debug_verbose.log" 2>&1
 # set -x
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="${CURRENT_DIR}/scripts"
@@ -47,7 +47,6 @@ set_copy_mode_bindings() {
 
     # -- BINDINGS FOR TMUX VERSION 2.4 AND LATER --
     if tmux_is_at_least 2.4; then
-        set -x
         tmux bind-key -T copy-mode-vi "$(yank_key)" send-keys -X "$(yank_action)" "$copy_command"
         tmux bind-key -T copy-mode-vi "$(put_key)" send-keys -X copy-pipe-and-cancel "tmux paste-buffer -p"
         tmux bind-key -T copy-mode-vi "$(yank_put_key)" send-keys -X copy-pipe-and-cancel "$copy_command; tmux paste-buffer -p"
@@ -64,7 +63,6 @@ set_copy_mode_bindings() {
                     tmux send-keys -X copy-pipe "'"$copy_command_mouse"'" -x; \
                 fi'
         fi
-        set +x
         # End custom binding MouseDragEnd1Pane for copy-mode-vi
 
         tmux bind-key -T copy-mode "$(yank_key)" send-keys -X "$(yank_action)" "$copy_command"
